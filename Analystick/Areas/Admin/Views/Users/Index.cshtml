@@ -1,0 +1,34 @@
+﻿@using Analystick.Web.Areas.Admin.Models
+@model IEnumerable<Analystick.Web.Areas.Admin.Models.UserModel>
+
+@{
+    ViewBag.Title = "Users";
+}
+
+<h2>Users</h2>
+
+<table class="table">
+    <tr>
+        <th>User Id</th>
+        <th>Email</th>
+        <th></th>
+    </tr>
+
+    @foreach (UserModel item in Model)
+    {
+        <tr>
+            <td>@item.UserId</td>
+            <td>@item.Email</td>
+            <td>
+                @using (Html.BeginForm("Delete", "Users", new {id = item.UserId}))
+                {
+                    <button class="btn btn-xs btn-danger" type="submit" onclick=' return confirm("Do you really want to delete this user? This action cannot be undone") '>Delete</button>
+                }
+            </td>
+        </tr>
+    }
+</table>
+
+<p>
+    @Html.ActionLink("Import Users", "New", null, new {@class = "btn btn-primary"})
+</p>

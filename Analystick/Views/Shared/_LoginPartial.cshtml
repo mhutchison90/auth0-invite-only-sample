@@ -1,0 +1,36 @@
+﻿@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Auth0Account", new { returnUrl = "" }, FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <ul class="nav navbar-nav navbar-right">
+            <li>Hello User.Identity.GetUserName()</li>
+            <li><a href="javascript:document.getElementById('logoutForm').submit()">Log off</a></li>
+        </ul>
+    }
+
+    <script src="~/Scripts/jquery-1.10.2.js" type="text/javascript"></script>
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="javascript:showLock();">Login</a></li>
+    </ul>
+    <script src="http://cdn.auth0.com/js/lock-6.min.js"></script>
+    <script type="text/javascript">
+        if (!window.location.origin) {
+            window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+        }
+
+        var lock = new Auth0Lock('@System.Configuration.ConfigurationManager.AppSettings["auth0:ClientId"]', '@System.Configuration.ConfigurationManager.AppSettings["auth0:Domain"]');
+
+        function showLock() {
+            lock.show({
+                callbackURL: window.location.origin + '/signin-auth0',
+                disableSignupAction: true
+            });
+        }
+    </script>
+}

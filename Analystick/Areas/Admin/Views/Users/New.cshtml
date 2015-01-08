@@ -1,0 +1,41 @@
+﻿@model IList<Analystick.Web.Areas.Admin.Models.UserModel>
+
+@{
+    ViewBag.Title = "New";
+}
+
+<h2>New</h2>
+
+@using (Html.BeginForm())
+{
+    <table class="table table-striped table-condensed">
+        <tr>
+            <th>
+                Given Name
+            </th>
+            <th>
+                Family Name
+            </th>
+            <th>
+                Email
+            </th>
+        </tr>
+
+        @for (int i = 0; i < 5; i++)
+        {
+            <tr>
+                <td>
+                    @Html.TextBoxFor(modelItem => Model[i].GivenName, new {@class = "form-control"})
+                </td>
+                <td>
+                    @Html.TextBoxFor(modelItem => Model[i].FamilyName, new {@class = "form-control"})
+                </td>
+                <td>
+                    @Html.TextBoxFor(modelItem => Model[i].Email, new {@class = "form-control"})
+                </td>
+            </tr>
+        }
+    </table>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+}
