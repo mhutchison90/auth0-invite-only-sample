@@ -257,6 +257,7 @@
     <Content Include="Views\Account\ConfirmPassword.cshtml" />
     <Content Include="Views\Account\Activated.cshtml" />
     <Content Include="Views\Profile\Index.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

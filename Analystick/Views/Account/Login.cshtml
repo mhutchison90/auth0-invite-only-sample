@@ -1,0 +1,14 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+@if (Request.IsAuthenticated)
+{
+    <h2>Activation required!</h2>
+    <p>Please verify your emails and make sure your account has been activated.</p>
+}
+else
+{
+    <h2>Login required!</h2>
+    <p>Please click the 'Login' button to sign in.</p>
+}

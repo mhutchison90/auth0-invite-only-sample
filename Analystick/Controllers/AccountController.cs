@@ -18,30 +18,42 @@ namespace Analystick.Web.Controllers
                 ConfigurationManager.AppSettings["auth0:Domain"]);
         }
 
-        public ActionResult Activate(string email)
+        public ActionResult Login()
         {
-            var user = GetUserProfile(email);
+            return View();
+        }
+
+        public ActionResult Activate(string token)
+        {
+            dynamic metadata = JWT.JsonWebToken.DecodeToObject(token, ConfigurationManager.AppSettings["analystick:signingKey"], true);
+            var user = GetUserProfile(metadata["id"]);
             if (user != null)
-                return View(new UserActivationModel {Email = email});
+                return View(new UserActivationModel {Email = user.Email, Token = token });
             return View("ActivationError", new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
         }
 
         [HttpPost]
         public ActionResult Activate(UserActivationModel model)
         {
+            dynamic metadata = JWT.JsonWebToken.DecodeToObject(model.Token, ConfigurationManager.AppSettings["analystick:signingKey"], true);
+            if (metadata == null)
+            {
+                return View("ActivationError", new UserActivationErrorModel("Unable to find the token."));
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var user = GetUserProfile(model.Email);
+            UserProfile user = GetUserProfile(metadata["id"]);
             if (user != null)
             {
-                if (user.ExtraProperties.ContainsKey("account_activated") && (bool)user.ExtraProperties["account_activated"])
+                if (user.ExtraProperties.ContainsKey("activation_pending") && !((bool)user.ExtraProperties["activation_pending"]))
                     return View("ActivationError", new UserActivationErrorModel("Error activating user, the user is already active."));
 
                 _client.ChangePassword(user.UserId, model.Password, true);
-                _client.UpdateUserMetadata(user.UserId, new {account_activated = true});
+                _client.UpdateUserMetadata(user.UserId, new { activation_pending = false });
 
                 return View("ConfirmPassword");
             }
@@ -55,17 +67,9 @@ namespace Analystick.Web.Controllers
             return View();
         }
 
-        private UserProfile GetUserProfile(string email)
+        private UserProfile GetUserProfile(string id)
         {
-            var users = _client.GetUsersByConnection(ConfigurationManager.AppSettings["auth0:Connection"], email).ToList();
-            if (users.Count == 1)
-            {
-                var user = users.FirstOrDefault();
-                var profile = _client.GetUser(user.UserId);
-                return profile;
-            }
-
-            return null;
+            return _client.GetUser(id);
         }
     }
 }

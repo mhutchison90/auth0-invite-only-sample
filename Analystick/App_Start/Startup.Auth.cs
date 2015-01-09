@@ -1,4 +1,5 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -47,6 +48,15 @@ namespace Analystick.Web
                 },
                 OnAuthenticated = context =>
                 {
+                    if (context.User["activation_pending"] != null)
+                    {
+                        var pending = context.User.Value<bool>("activation_pending");
+                        if (!pending)
+                        {
+                            context.Identity.AddClaim(new Claim(ClaimTypes.Role, "Member"));
+                        }
+                    }
+
                     // context.User is a JObject with the original user object from Auth0
                     if (context.User["admin"] != null)
                     {

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Net.Mail;
 using System.Web.Mvc;
 using Analystick.Web.Areas.Admin.Models;
 using Auth0;
+using JWT;
 
 namespace Analystick.Web.Areas.Admin.Controllers
 {
@@ -15,8 +17,8 @@ namespace Analystick.Web.Areas.Admin.Controllers
         public UsersController()
         {
             _client = new Client(
-                ConfigurationManager.AppSettings["auth0:ClientId"], 
-                ConfigurationManager.AppSettings["auth0:ClientSecret"], 
+                ConfigurationManager.AppSettings["auth0:ClientId"],
+                ConfigurationManager.AppSettings["auth0:ClientSecret"],
                 ConfigurationManager.AppSettings["auth0:Domain"]);
         }
 
@@ -36,12 +38,30 @@ namespace Analystick.Web.Areas.Admin.Controllers
         {
             if (users != null)
             {
-                foreach (UserModel user in users.Where(u => !String.IsNullOrEmpty(u.Email)))
+                foreach (var user in users.Where(u => !String.IsNullOrEmpty(u.Email)))
                 {
-                    _client.CreateUser(user.Email, Guid.NewGuid().ToString(), ConfigurationManager.AppSettings["auth0:Connection"], false, new
+                    var randomPassword = Guid.NewGuid().ToString();
+                    var metadata = new
                     {
-                        user.GivenName, user.FamilyName
-                    });
+                        user.GivenName,
+                        user.FamilyName,
+                        activation_pending = true
+                    };
+
+                    var profile = _client.CreateUser(user.Email, randomPassword, ConfigurationManager.AppSettings["auth0:Connection"], true, metadata);
+
+                    var token = JWT.JsonWebToken.Encode(new {id = profile.UserId, email = profile.Email}, ConfigurationManager.AppSettings["analystick:signingKey"], JwtHashAlgorithm.HS256);
+                    var body = "Hello {0}, " +
+                               "Great that you're using our application. Please click <a href='{1}'>ACTIVATE</a> to activate your account." +
+                               "The Analystick team!";
+
+                    var mail = new MailMessage("app@auth0.com", user.Email, "Hello there!", 
+                        String.Format(body, String.Format("{0} {1}", user.GivenName, user.FamilyName).Trim(),
+                            Url.Action("Activate", "Account", new { area = "", token }, Request.Url.Scheme)));
+                    mail.IsBodyHtml = true;
+
+                    var mailClient = new SmtpClient();
+                    mailClient.Send(mail);
                 }
             }
 

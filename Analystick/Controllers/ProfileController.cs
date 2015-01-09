@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Analystick.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Member")]
     public class ProfileController : Controller
     {
         public ActionResult Index()
