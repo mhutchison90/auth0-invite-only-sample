@@ -23,22 +23,36 @@ namespace Analystick.Web.Controllers
             return View();
         }
 
-        public ActionResult Activate(string token)
+        /// <summary>
+        /// GET Account/Activate?userToken=xxx
+        /// </summary>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
+        public ActionResult Activate(string userToken)
         {
-            dynamic metadata = JWT.JsonWebToken.DecodeToObject(token, ConfigurationManager.AppSettings["analystick:signingKey"], true);
+            dynamic metadata = JWT.JsonWebToken.DecodeToObject(userToken, 
+                ConfigurationManager.AppSettings["analystick:signingKey"]);
             var user = GetUserProfile(metadata["id"]);
             if (user != null)
-                return View(new UserActivationModel {Email = user.Email, Token = token });
-            return View("ActivationError", new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
+                return View(new UserActivationModel { Email = user.Email, UserToken = userToken });
+            return View("ActivationError", 
+                new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
         }
 
+        /// <summary>
+        /// POST Account/Activate
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public ActionResult Activate(UserActivationModel model)
         {
-            dynamic metadata = JWT.JsonWebToken.DecodeToObject(model.Token, ConfigurationManager.AppSettings["analystick:signingKey"], true);
+            dynamic metadata = JWT.JsonWebToken.DecodeToObject(model.UserToken, 
+                ConfigurationManager.AppSettings["analystick:signingKey"], true);
             if (metadata == null)
             {
-                return View("ActivationError", new UserActivationErrorModel("Unable to find the token."));
+                return View("ActivationError", 
+                    new UserActivationErrorModel("Unable to find the token."));
             }
 
             if (!ModelState.IsValid)
@@ -52,21 +66,16 @@ namespace Analystick.Web.Controllers
                 if (user.ExtraProperties.ContainsKey("activation_pending") && !((bool)user.ExtraProperties["activation_pending"]))
                     return View("ActivationError", new UserActivationErrorModel("Error activating user, the user is already active."));
 
-                _client.ChangePassword(user.UserId, model.Password, true);
+                _client.ChangePassword(user.UserId, model.Password, false);
                 _client.UpdateUserMetadata(user.UserId, new { activation_pending = false });
 
-                return View("ConfirmPassword");
+                return View("Activated");
             }
-            return View("ActivationError", new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
-        }
 
-        public ActionResult Activated(bool success, string message)
-        {
-            if (!success)
-                return View("ActivationError", new UserActivationErrorModel(message));
-            return View();
+            return View("ActivationError", 
+                new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
         }
-
+        
         private UserProfile GetUserProfile(string id)
         {
             return _client.GetUser(id);

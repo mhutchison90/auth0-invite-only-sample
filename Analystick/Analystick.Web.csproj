@@ -39,8 +39,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Auth0">
-      <HintPath>..\packages\Auth0.1.10.1\lib\Auth0.dll</HintPath>
+    <Reference Include="Auth0, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Auth0.1.10.2\lib\Auth0.dll</HintPath>
     </Reference>
     <Reference Include="Auth0.Owin, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -254,7 +255,6 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Account\ActivationError.cshtml" />
     <Content Include="Views\Account\Activate.cshtml" />
-    <Content Include="Views\Account\ConfirmPassword.cshtml" />
     <Content Include="Views\Account\Activated.cshtml" />
     <Content Include="Views\Profile\Index.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />

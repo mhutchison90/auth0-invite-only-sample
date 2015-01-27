@@ -25,7 +25,7 @@ namespace Analystick.Web.Areas.Admin.Controllers
         public ActionResult Index()
         {
             return View(_client.GetUsersByConnection(ConfigurationManager.AppSettings["auth0:Connection"])
-                .Select(u => new UserModel {UserId = u.UserId, GivenName = u.GivenName, FamilyName = u.FamilyName, Email = u.Email}).ToList());
+                .Select(u => new UserModel { UserId = u.UserId, GivenName = u.GivenName, FamilyName = u.FamilyName, Email = u.Email }).ToList());
         }
 
         public ActionResult New()
@@ -48,16 +48,25 @@ namespace Analystick.Web.Areas.Admin.Controllers
                         activation_pending = true
                     };
 
-                    var profile = _client.CreateUser(user.Email, randomPassword, ConfigurationManager.AppSettings["auth0:Connection"], true, metadata);
+                    var profile = _client.CreateUser(user.Email, randomPassword,
+                      ConfigurationManager.AppSettings["auth0:Connection"], false, metadata);
 
-                    var token = JWT.JsonWebToken.Encode(new {id = profile.UserId, email = profile.Email}, ConfigurationManager.AppSettings["analystick:signingKey"], JwtHashAlgorithm.HS256);
+                    var userToken = JWT.JsonWebToken.Encode(
+                      new { id = profile.UserId, email = profile.Email },
+                        ConfigurationManager.AppSettings["analystick:signingKey"],
+                          JwtHashAlgorithm.HS256);
+
+                    var verificationUrl = _client.GenerateVerificationTicket(profile.UserId,
+                        Url.Action("Activate", "Account", new { area = "", userToken }, Request.Url.Scheme));
+
                     var body = "Hello {0}, " +
-                               "Great that you're using our application. Please click <a href='{1}'>ACTIVATE</a> to activate your account." +
-                               "The Analystick team!";
+                      "Great that you're using our application. " +
+                      "Please click <a href='{1}'>ACTIVATE</a> to activate your account." +
+                      "The Analystick team!";
 
-                    var mail = new MailMessage("app@auth0.com", user.Email, "Hello there!", 
-                        String.Format(body, String.Format("{0} {1}", user.GivenName, user.FamilyName).Trim(),
-                            Url.Action("Activate", "Account", new { area = "", token }, Request.Url.Scheme)));
+                    var fullName = String.Format("{0} {1}", user.GivenName, user.FamilyName).Trim();
+                    var mail = new MailMessage("app@auth0.com", user.Email, "Hello there!",
+                        String.Format(body, fullName, verificationUrl));
                     mail.IsBodyHtml = true;
 
                     var mailClient = new SmtpClient();

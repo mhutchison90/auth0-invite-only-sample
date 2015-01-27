@@ -10,7 +10,7 @@
 @using (Html.BeginForm()) 
 {
     @Html.AntiForgeryToken()
-    @Html.HiddenFor(h => h.Token)
+    @Html.HiddenFor(h => h.UserToken)
     
     <h4>Before your account can be activated you'll need to enter a new password.</h4>
     

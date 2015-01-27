@@ -14,7 +14,7 @@ namespace Analystick.Web.Models
         [Compare("Password")]
         public string ConfirmPassword { get; set; }
 
-        public string Token
+        public string UserToken
         {
             get;
             set;

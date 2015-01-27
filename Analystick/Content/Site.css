@@ -39,3 +39,7 @@ input[type="checkbox"].input-validation-error {
 .validation-summary-valid {
     display: none;
 }
+
+.navbar {
+    border-radius: 0px;
+}
