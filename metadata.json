@@ -1,0 +1,10 @@
+{
+  "name": "Invite Only Sample",
+  "type": "sample",
+  "tags": [
+    "aspnet-mvc",
+    "dotnet",
+    "csharp",
+    "web"
+  ]
+}
