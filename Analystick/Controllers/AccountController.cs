@@ -2,20 +2,28 @@
 using System.Linq;
 using System.Web.Mvc;
 using Analystick.Web.Models;
-using Auth0;
+using Auth0.ManagementApi;
+using System.Threading.Tasks;
+using Auth0.Core;
+using Auth0.ManagementApi.Models;
 
 namespace Analystick.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly Client _client;
+        private ManagementApiClient _client;
 
-        public AccountController()
+        private async Task<ManagementApiClient> GetApiClient()
         {
-            _client = new Client(
-                ConfigurationManager.AppSettings["auth0:ClientId"], 
-                ConfigurationManager.AppSettings["auth0:ClientSecret"], 
-                ConfigurationManager.AppSettings["auth0:Domain"]);
+            if (_client == null)
+            {
+                var token = await (new ApiTokenCache()).GetToken();
+                _client = new ManagementApiClient(
+                    token,
+                    ConfigurationManager.AppSettings["auth0:Domain"]);
+            }
+
+            return _client;
         }
 
         public ActionResult Login()
@@ -28,11 +36,11 @@ namespace Analystick.Web.Controllers
         /// </summary>
         /// <param name="userToken"></param>
         /// <returns></returns>
-        public ActionResult Activate(string userToken)
+        public async Task<ActionResult> Activate(string userToken)
         {
             dynamic metadata = JWT.JsonWebToken.DecodeToObject(userToken, 
                 ConfigurationManager.AppSettings["analystick:signingKey"]);
-            var user = GetUserProfile(metadata["id"]);
+            var user = await GetUserProfile(metadata["id"]);
             if (user != null)
                 return View(new UserActivationModel { Email = user.Email, UserToken = userToken });
             return View("ActivationError", 
@@ -45,7 +53,7 @@ namespace Analystick.Web.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult Activate(UserActivationModel model)
+        public async Task<ActionResult> Activate(UserActivationModel model)
         {
             dynamic metadata = JWT.JsonWebToken.DecodeToObject(model.UserToken, 
                 ConfigurationManager.AppSettings["analystick:signingKey"], true);
@@ -60,14 +68,20 @@ namespace Analystick.Web.Controllers
                 return View(model);
             }
 
-            UserProfile user = GetUserProfile(metadata["id"]);
+            User user = await GetUserProfile(metadata["id"]);
             if (user != null)
             {
-                if (user.ExtraProperties.ContainsKey("activation_pending") && !((bool)user.ExtraProperties["activation_pending"]))
+                if (user.AppMetadata["activation_pending"] != null && !((bool)user.AppMetadata["activation_pending"]))
                     return View("ActivationError", new UserActivationErrorModel("Error activating user, the user is already active."));
 
-                _client.ChangePassword(user.UserId, model.Password, false);
-                _client.UpdateUserMetadata(user.UserId, new { activation_pending = false });
+                var client = await GetApiClient();
+                await client.Users.UpdateAsync(user.UserId, new UserUpdateRequest {
+                    Password = model.Password
+                });
+                await client.Users.UpdateAsync(user.UserId, new UserUpdateRequest
+                {
+                    AppMetadata = new { activation_pending = false }
+                });
 
                 return View("Activated");
             }
@@ -76,9 +90,10 @@ namespace Analystick.Web.Controllers
                 new UserActivationErrorModel("Error activating user, could not find an exact match for this email address."));
         }
         
-        private UserProfile GetUserProfile(string id)
+        private async Task<User> GetUserProfile(string id)
         {
-            return _client.GetUser(id);
+            var client = await GetApiClient();
+            return await client.Users.GetAsync(id);
         }
     }
 }
