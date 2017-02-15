@@ -34,7 +34,12 @@ namespace Analystick.Web.Areas.Admin.Controllers
         {
             var client = await GetApiClient();
             return View((await client.Users.GetAllAsync(connection: ConfigurationManager.AppSettings["auth0:Connection"]))
-                .Select(u => new UserModel { UserId = u.UserId, GivenName = u.FirstName, FamilyName = u.LastName, Email = u.Email }).ToList());
+                .Select(u => new UserModel {
+                    UserId = u.UserId,
+                    GivenName = u.FirstName,
+                    FamilyName = u.LastName,
+                    Email = u.Email }
+                ).ToList());
         }
 
         public ActionResult New()
@@ -72,12 +77,14 @@ namespace Analystick.Web.Areas.Admin.Controllers
                         ConfigurationManager.AppSettings["analystick:signingKey"],
                           JwtHashAlgorithm.HS256);
 
-                    var verificationUrlTicket = await client.Tickets.CreateEmailVerificationTicketAsync(new Auth0.ManagementApi.Models.EmailVerificationTicketRequest
-                    {
-                        UserId = profile.UserId,
+                    var verificationUrlTicket = await client.Tickets.CreateEmailVerificationTicketAsync(
+                        new Auth0.ManagementApi.Models.EmailVerificationTicketRequest
+                        {
+                            UserId = profile.UserId,
 
-                        ResultUrl = Url.Action("Activate", "Account", new { area = "", userToken }, Request.Url.Scheme)
-                    });
+                            ResultUrl = Url.Action("Activate", "Account", new { area = "", userToken }, Request.Url.Scheme)
+                        }
+                    );
 
                     var body = "Hello {0}, " +
                       "Great that you're using our application. " +
