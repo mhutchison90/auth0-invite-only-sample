@@ -107,19 +107,5 @@ namespace Analystick.Web.Areas.Admin.Controllers
             }
             return RedirectToAction("Index");
         }
-
-        private async Task<string> GetManagementApiToken()
-        {
-            var authClient = new Auth0.AuthenticationApi.AuthenticationApiClient(
-                ConfigurationManager.AppSettings["auth0:Domain"]);
-
-            var token = await authClient.GetTokenAsync(new ClientCredentialsTokenRequest
-            {
-                ClientId = ConfigurationManager.AppSettings["auth0:ClientId"],
-                ClientSecret = ConfigurationManager.AppSettings["auth0:ClientSecret"],
-                Audience = $"https://{ConfigurationManager.AppSettings["auth0:Domain"]}/api/v2/"
-            });
-            return token.AccessToken;
-        }
     }
 }
