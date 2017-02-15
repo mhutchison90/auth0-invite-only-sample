@@ -8,6 +8,10 @@ using System.Web;
 
 namespace Analystick.Web.Controllers
 {
+    /// <summary>
+    /// A very simple global cache for an access
+    /// token to access Management API v2.
+    /// </summary>
     public class ApiTokenCache
     {
         private static AccessTokenResponse token;
