@@ -1,10 +1,10 @@
 # Invite Only Sample
 
-Sample showing an invite only workflow. Users will not be able to sign-in, but provisioning will be managed by the (customer) administrators.
+Sample showing an invite only workflow. Users will not be able to sign-in, but provisioning will be managed by the (customer) administrators. A tutorial for this sample can be found at https://auth0.com/docs/tutorials/creating-invite-only-applications.
 
 ## Getting Started
 
-Read through this document (todo!) to understand how we're tuning Auth0 to prevent sign-ups and work with an invite-only workflow (through provisioning from the application's backend). In addition to that you'll need to specify your credentials and the connection in the Web.config
+Read through the tutorial to understand how we're tuning Auth0 to prevent sign-ups and work with an invite-only workflow (through provisioning from the application's backend). In addition to that you'll need to specify your credentials and the connection in the Web.config
 
 
     <!-- Auth0 Settings -->

@@ -18,19 +18,23 @@ else
     <ul class="nav navbar-nav navbar-right">
         <li><a href="javascript:showLock();">Login</a></li>
     </ul>
-    <script src="//cdn.auth0.com/js/lock-6.10.min.js"></script>
+    <script src="https://cdn.auth0.com/js/lock/10.9.1/lock.min.js"></script>
     <script type="text/javascript">
         if (!window.location.origin) {
             window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
         }
 
-        var lock = new Auth0Lock('@System.Configuration.ConfigurationManager.AppSettings["auth0:ClientId"]', '@System.Configuration.ConfigurationManager.AppSettings["auth0:Domain"]');
+        var lock = new Auth0Lock(
+            '@System.Configuration.ConfigurationManager.AppSettings["auth0:ClientId"]', 
+            '@System.Configuration.ConfigurationManager.AppSettings["auth0:Domain"]', {
+                auth: {
+                    redirectUrl: window.location.origin + '/signin-auth0'
+                },
+                allowSignUp: false
+            });
 
         function showLock() {
-            lock.show({
-                callbackURL: window.location.origin + '/signin-auth0',
-                disableSignupAction: true
-            });
+            lock.show();
         }
     </script>
 }

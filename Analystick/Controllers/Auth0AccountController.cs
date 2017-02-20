@@ -1,3 +1,5 @@
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -5,8 +7,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using Microsoft.Owin.Security;
 
 namespace Analystick.Web.Controllers
 {
@@ -14,7 +14,10 @@ namespace Analystick.Web.Controllers
     {
         private IAuthenticationManager AuthenticationManager
         {
-            get { return HttpContext.GetOwinContext().Authentication; }
+            get
+            {
+                return HttpContext.GetOwinContext().Authentication;
+            }
         }
 
         //
@@ -24,7 +27,7 @@ namespace Analystick.Web.Controllers
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ExternalCookie);
 
-            ClaimsIdentity externalIdentity = await AuthenticationManager.GetExternalIdentityAsync(DefaultAuthenticationTypes.ExternalCookie);
+            var externalIdentity = await AuthenticationManager.GetExternalIdentityAsync(DefaultAuthenticationTypes.ExternalCookie);
             if (externalIdentity == null)
             {
                 throw new Exception("Could not get the external identity. Please check your Auth0 configuration settings and ensure that " +
@@ -32,7 +35,7 @@ namespace Analystick.Web.Controllers
                                     "Also make sure you are not calling setting the callbackOnLocationHash option on the JavaScript login widget.");
             }
 
-            AuthenticationManager.SignIn(new AuthenticationProperties {IsPersistent = false}, CreateIdentity(externalIdentity));
+            AuthenticationManager.SignIn(new AuthenticationProperties { IsPersistent = false }, CreateIdentity(externalIdentity));
             return RedirectToLocal(returnUrl);
         }
 
@@ -40,20 +43,20 @@ namespace Analystick.Web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff(string returnUrl)
         {
-            string[] appTypes = AuthenticationManager.GetAuthenticationTypes().Select(at => at.AuthenticationType).ToArray();
+            var appTypes = AuthenticationManager.GetAuthenticationTypes().Select(at => at.AuthenticationType).ToArray();
             AuthenticationManager.SignOut(appTypes);
 
-            string absoluteReturnUrl = string.IsNullOrEmpty(returnUrl) ?
-                Url.Action("Index", "Home", new {}, Request.Url.Scheme) :
-                Url.IsLocalUrl(returnUrl) ?
-                    new Uri(Request.Url, returnUrl).AbsoluteUri : returnUrl;
+            var absoluteReturnUrl = string.IsNullOrEmpty(returnUrl) ?
+                this.Url.Action("Index", "Home", new { }, this.Request.Url.Scheme) :
+                this.Url.IsLocalUrl(returnUrl) ?
+                    new Uri(this.Request.Url, returnUrl).AbsoluteUri : returnUrl;
 
             return Redirect(
-                string.Format("https://{0}/logout?returnTo={1}",
+                string.Format("https://{0}/v2/logout?returnTo={1}",
                     ConfigurationManager.AppSettings["auth0:Domain"],
                     absoluteReturnUrl));
         }
-
+		
         private static ClaimsIdentity CreateIdentity(ClaimsIdentity externalIdentity)
         {
             var identity = new ClaimsIdentity(externalIdentity.Claims, DefaultAuthenticationTypes.ApplicationCookie);
@@ -62,8 +65,8 @@ namespace Analystick.Web.Controllers
             // See http://msdn.microsoft.com/en-us/library/system.web.helpers.antiforgeryconfig.uniqueclaimtypeidentifier(v=vs.111).aspx
             identity.AddClaim(
                 new Claim(
-                    "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider",
-                    "ASP.NET Identity",
+                    "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider", 
+                    "ASP.NET Identity", 
                     "http://www.w3.org/2001/XMLSchema#string"));
 
             return identity;
@@ -75,7 +78,10 @@ namespace Analystick.Web.Controllers
             {
                 return Redirect(returnUrl);
             }
-            return RedirectToAction("Index", "Home");
+            else
+            {
+                return RedirectToAction("Index", "Home");
+            }
         }
     }
 }
