@@ -21,6 +21,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,17 +41,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Auth0.AuthenticationApi, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Auth0.AuthenticationApi.4.0.0-beta1\lib\net45\Auth0.AuthenticationApi.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Auth0.AuthenticationApi, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Auth0.AuthenticationApi.4.2.0\lib\netstandard1.1\Auth0.AuthenticationApi.dll</HintPath>
     </Reference>
-    <Reference Include="Auth0.Core, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Auth0.Core.4.0.0-beta1\lib\net45\Auth0.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Auth0.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Auth0.Core.4.0.0\lib\netstandard1.1\Auth0.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Auth0.ManagementApi, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Auth0.ManagementApi.4.0.0-beta1\lib\net45\Auth0.ManagementApi.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Auth0.ManagementApi, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Auth0.ManagementApi.4.5.0\lib\netstandard1.1\Auth0.ManagementApi.dll</HintPath>
     </Reference>
     <Reference Include="Auth0.Owin, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Auth0-ASPNET-Owin.1.1.1\lib\net45\Auth0.Owin.dll</HintPath>
@@ -88,9 +86,8 @@
       <HintPath>..\packages\Microsoft.Owin.Security.OAuth.2.1.0\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp">
       <HintPath>..\packages\RestSharp.105.0.0\lib\net4\RestSharp.dll</HintPath>
