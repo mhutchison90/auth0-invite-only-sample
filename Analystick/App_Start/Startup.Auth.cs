@@ -7,8 +7,10 @@ using System.Web;
 using Auth0.Owin;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
+using System.Web.Helpers;
 
 namespace Analystick.Web
 {
@@ -17,17 +19,19 @@ namespace Analystick.Web
         // For more information on configuring authentication, please visit http://go.microsoft.com/fwlink/?LinkId=301864
         public void ConfigureAuth(IAppBuilder app)
         {
+            //AntiForgeryConfig.UniqueClaimTypeIdentifier = "sub";
+
+            // Set Cookies as default authentication type
+            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
+
             // Enable the application to use a cookie to store information for the signed in user
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
-                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                AuthenticationType = CookieAuthenticationDefaults.AuthenticationType,
                 LoginPath = new PathString("/Account/Login")
                 // LoginPath property informs the middleware that it should change an outgoing 401 Unauthorized status code into a 302 redirection onto the given login path
                 // More info: http://msdn.microsoft.com/en-us/library/microsoft.owin.security.cookies.cookieauthenticationoptions.loginpath(v=vs.111).aspx
             });
-
-            // Use a cookie to temporarily store information about a user logging in with a third party login provider
-            app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
             // Use Auth0
             var provider = new Auth0AuthenticationProvider
@@ -67,7 +71,13 @@ namespace Analystick.Web
                         new Claim(
                             "friendly_name",
                             string.Format("{0}, {1}", context.User["family_name"], context.User["given_name"])));
-
+                    const string identityProviderClaim = "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider";
+                    if (!context.Identity.HasClaim(c => c.Type == identityProviderClaim))
+                    {
+                        // This claim is required for the ASP.NET Anti-Forgery Token to function.
+                        // See http://msdn.microsoft.com/en-us/library/system.web.helpers.antiforgeryconfig.uniqueclaimtypeidentifier(v=vs.111).aspx
+                        context.Identity.AddClaim(new Claim(identityProviderClaim, "Auth0"));
+                    }
                     // NOTE: uncomment this if you send an array of roles (i.e.: ['sales','marketing','hr'])
                     //context.User["roles"].ToList().ForEach(r =>
                     //{
@@ -78,9 +88,14 @@ namespace Analystick.Web
                 }
             };
 
-            app.UseAuth0Authentication(ConfigurationManager.AppSettings["auth0:ClientId"], ConfigurationManager.AppSettings["auth0:ClientSecret"], ConfigurationManager.AppSettings["auth0:Domain"],
-                //redirectPath: "/Account/ExternalLoginCallback", // use AccountController instead of Auth0AccountController
-                provider: provider);
+            var options = new Auth0AuthenticationOptions()
+            {
+                Domain = ConfigurationManager.AppSettings["auth0:Domain"],
+                ClientId = ConfigurationManager.AppSettings["auth0:ClientId"],
+                ClientSecret = ConfigurationManager.AppSettings["auth0:ClientSecret"],
+                Provider = provider
+            };
+            app.UseAuth0Authentication(options);
         }
     }
 }

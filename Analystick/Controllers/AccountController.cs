@@ -6,6 +6,11 @@ using Auth0.ManagementApi;
 using System.Threading.Tasks;
 using Auth0.Core;
 using Auth0.ManagementApi.Models;
+using Auth0.AuthenticationApi;
+using System;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
+using System.Web;
 
 namespace Analystick.Web.Controllers
 {
@@ -26,9 +31,50 @@ namespace Analystick.Web.Controllers
             return _client;
         }
 
-        public ActionResult Login()
+        public ActionResult ActivationRequired()
         {
             return View();
+        }
+
+        public ActionResult Login(string returnUrl)
+        {
+            if (!Url.IsLocalUrl(returnUrl))
+            {
+                returnUrl = null;
+            }
+
+            return new ChallengeResult("Auth0", returnUrl ?? Url.Action("Index", "Home"));
+        }
+
+        private IAuthenticationManager AuthenticationManager
+        {
+            get
+            {
+                return HttpContext.GetOwinContext().Authentication;
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult LogOff(string returnUrl)
+        {
+            var appTypes = AuthenticationManager.GetAuthenticationTypes().Select(at => at.AuthenticationType).ToArray();
+            AuthenticationManager.SignOut(appTypes);
+
+            var absoluteReturnUrl = string.IsNullOrEmpty(returnUrl) ?
+                this.Url.Action("Index", "Home", new { }, this.Request.Url.Scheme) :
+                this.Url.IsLocalUrl(returnUrl) ?
+                    new Uri(this.Request.Url, returnUrl).AbsoluteUri : returnUrl;
+
+            // remove this line and uncomment the next redirect
+            // if you want to clear Auth0's session as well
+            return Redirect(absoluteReturnUrl);
+
+            //return Redirect(
+            //    string.Format("https://{0}/v2/logout?client_id={1}&returnTo={2}",
+            //        ConfigurationManager.AppSettings["auth0:Domain"],
+            //        ConfigurationManager.AppSettings["auth0:ClientId"],
+            //        absoluteReturnUrl));
         }
 
         /// <summary>
@@ -94,6 +140,37 @@ namespace Analystick.Web.Controllers
         {
             var client = await GetApiClient();
             return await client.Users.GetAsync(id);
+        }
+
+        internal class ChallengeResult : HttpUnauthorizedResult
+        {
+            private const string XsrfKey = "XsrfId";
+
+            public ChallengeResult(string provider, string redirectUri)
+                : this(provider, redirectUri, null)
+            {
+            }
+
+            public ChallengeResult(string provider, string redirectUri, string userId)
+            {
+                LoginProvider = provider;
+                RedirectUri = redirectUri;
+                UserId = userId;
+            }
+
+            public string LoginProvider { get; set; }
+            public string RedirectUri { get; set; }
+            public string UserId { get; set; }
+
+            public override void ExecuteResult(ControllerContext context)
+            {
+                var properties = new AuthenticationProperties { RedirectUri = RedirectUri };
+                if (UserId != null)
+                {
+                    properties.Dictionary[XsrfKey] = UserId;
+                }
+                context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
+            }
         }
     }
 }
